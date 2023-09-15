@@ -21,6 +21,15 @@ object test {
     //  修改数据库CBDIR的权限的指令“hadoop fs -chmod 777 /user/hive/warehouse/cbdir.db”
     mealrating.write.mode("overwrite").saveAsTable("MealRating")
 
+    //  初步分析
+
+    mealrating.groupBy("UserId").count().show()
+
+    mealrating.groupBy("MealID","Rating").count().show()
+
+    mealrating.groupBy("MealID","Review").count().show()
+
+
 
   }
 }

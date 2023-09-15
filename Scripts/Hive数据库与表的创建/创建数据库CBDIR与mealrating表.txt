@@ -1,3 +1,4 @@
+//有误
 create database CBDIR;
 
 use CBDIR;
@@ -10,3 +11,12 @@ Review string,
 MealID string)
 row format delimited fields terminated by ',';
 load data inpath '/CBDIRDatas/MealRatings_201705_201706.json' overwrite into table MealRatings;
+
+// 通过spark读取保存即可
+    
+val mealrating = spark.read.json("hdfs://master:8020/CBDIRDatas/MealRatings_201705_201706.json")
+
+//  切换使用的数据库
+spark.catalog.setCurrentDatabase("cbdir")
+
+mealrating.write.mode("overwrite").saveAsTable("MealRating")
