@@ -1,0 +1,17 @@
+1.启动Hadoop集群脚本
+hadoop_cluster start
+
+2.启动hive的存储服务
+hive --service metastore &
+
+3.启动hive
+hive
+
+4.启动spark服务
+cd /usr/local/spark-3.2.1-bin-hadoop2.7/sbin
+./start-all.sh
+./start-history-server.sh
+
+5.进入spark
+spark -shell
+

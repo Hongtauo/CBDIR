@@ -1,0 +1,5 @@
+dfs -mkdir -p /CBDIRDatas;
+
+dfs -put local /opt/meal_list.sql /CBDIRDatas/meal_list.sql;
+
+dfs -put /opt/MealRatings_201705_201706.json /CBDIRDatas/MealRatings_201705_201706.json;

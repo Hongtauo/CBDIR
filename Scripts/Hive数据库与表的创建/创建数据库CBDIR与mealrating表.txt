@@ -1,0 +1,12 @@
+create database CBDIR;
+
+use CBDIR;
+
+create table MealRatings(
+UserId string,
+Rating double,
+ReviewTime string,
+Review string,
+MealID string)
+row format delimited fields terminated by ',';
+load data inpath '/CBDIRDatas/MealRatings_201705_201706.json' overwrite into table MealRatings;
