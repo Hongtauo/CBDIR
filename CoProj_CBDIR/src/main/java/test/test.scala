@@ -42,7 +42,7 @@ object test {
     meal_list.write.mode("overwrite").saveAsTable("meal_list")
 
     // 至此，Hive的数据库CBDIR中存在两张表：1、MealRating 2.meal_list
-    
+
 
   }
 }
