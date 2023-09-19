@@ -72,12 +72,22 @@ object Processing {
 // 三、使用LDA模型 5130个主题,每个用户表示一个主题
     import org.apache.spark.sql.functions.explode
     import spark.implicits._
-    val lda = new LDA().setK(5130).setMaxIter(20) //第一个参数表示主题数，第二个参数是迭代次数
+
+//    for (i<-Array(5,10,15,20,40,60,100)){
+    val lda = new LDA()
+      .setK(5130)
+      //.setOptimizer("online")
+      .setMaxIter(50) //第一个参数表示主题数，第二个参数是迭代次数
+
     val model = lda.fit(output)
     // 第一列表示主题，一个用户就是一个主题，第二列表示菜品id，也就是每个主题中的推荐菜品
+//    val ll = model.logLikelihood(output)
+//    val lp = model.logPerplexity(output)
+//    }
     val topics = model.describeTopics(5)
     println("The topics described by their top-weighted terms:")
     //topics.show(false)
+    // 将第二列的菜品id展开，
     val explodedTopics = topics.select($"topic", explode($"termIndices").as("termIndex"), $"termWeights").drop("termWeights")
     //explodedTopics.show()
 
@@ -128,7 +138,8 @@ object Processing {
     // 将主题模型里面的Index转换为MealID，得到主题模型输出的每个主题对印的菜品推荐TopicsANDMealID
     val topicsWithMealID = explodedTopics.join(MealIndexList, explodedTopics("termIndex") === MealIndexList("Index"))
     val finalTopics = topicsWithMealID.select("topic", "MealID").orderBy("topic")
-    // 假设explodedTopics是你的DataFrame，它包含了"topic"和"termIndex"两列
+
+    // 假设explodedTopics是你的DataFrame，它包含了"topic"和"termIndex"两列，第二列已经组合成一个列表，列表中就是每个用户推荐的菜品ID
     val TopicsANDMealID = finalTopics.groupBy("topic").agg(collect_list("MealID").as("MealIDs"))
     TopicsANDMealID.show()
 
@@ -148,13 +159,15 @@ object Processing {
     UserIDANDIndex.select("UserID","index").show()
     //    MealIndexed.show()
 
-
     // 3. 生成 用户-菜品推荐 表
       // TopicsANDMealID是你的第一个DataFrame，它包含了"topic"和"MealIDs"两列
       // UserIDANDIndex是你的第二个DataFrame，它包含了"UserID"和"index"两列
       // 使用join操作，根据index和topic进行匹配
     val joinedDF = TopicsANDMealID.join(UserIDANDIndex, TopicsANDMealID("topic") === UserIDANDIndex("index"))
     val UserIDANDMealID = joinedDF.select("UserID", "MealIDs")
+    println("针对每个用户推荐的菜品系列")
     UserIDANDMealID.show()
+    UserIDANDMealID.write.mode("overwrite").saveAsTable("UserIDANDMealID")
+
   }
 }

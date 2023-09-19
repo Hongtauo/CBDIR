@@ -15,34 +15,17 @@ object DataFilters {
       .getOrCreate()
 
     spark.sparkContext.setLogLevel("WARN")
-
-    // 读取HDFS上的结构化数据
-    val mealrating = spark.read.json("hdfs://master:8020/CBDIRDatas/MealRatings_201705_201706.json")
-
-//    mealrating.show()
-
-    //  切换使用的数据库
     spark.catalog.setCurrentDatabase("cbdir");
+    // 从Hive的数据库CBDIR中存在两张表：1、MealRating 2.meal_list读取数据
 
-    //  修改数据库CBDIR的权限的指令“hadoop fs -chmod 777 /user/hive/warehouse/cbdir.db”，将DataFrame文件同步导出到Hive数据库CBDIR下
+    val mealrating = spark.read.table("MealRating")
+    val MealList = spark.read.table("MealList")
 
-//    mealrating.write.mode("overwrite").saveAsTable("MealRating")
-
-
-    //  读取外部数据库sql中的文件，需要在IDEA中，从项目结构中导入mysql的驱动包.jar，该驱动包也在工程文件的Configs下
-    val pro = new Properties()
-    pro.put("driver", "com.mysql.cj.jdbc.Driver")
-    pro.put("user", "root")
-    pro.put("password", "123456")
-
-    val meal_list = spark.read.jdbc("jdbc:mysql://master:3306","test.meal_list",pro)
-//    meal_list.show()
-//    meal_list.write.mode("overwrite").saveAsTable("meal_list")
-
-    // 至此，Hive的数据库CBDIR中存在两张表：1、MealRating 2.meal_list
 
     //过滤重复评分数据
     // 如果报Could not locate executable null\bin\winutils.exe in the Hadoop binaries的错误，在Config文件夹下找到winutils-master，并按此网站的教程设置环境变量https://gitcode.net/mirrors/cdarlint/winutils，版本选择大版本相同的即可
+
+
     // 定义窗口规范，按UserID和MealID分区并按ReviewTime降序排序
     val windowSpec = Window.partitionBy("UserID", "MealID").orderBy(desc("ReviewTime"))
 
@@ -67,7 +50,7 @@ object DataFilters {
     val encodedData = latestRatings
       .join(userIndex, Seq("UserID"))
       .join(mealIndex, Seq("MealID"))
-      .join(meal_list,Seq("MealID"))
+      .join(MealList,Seq("MealID"))
 //      .drop("UserID", "MealID")
 //      .withColumnRenamed("UserIndex", "UserID")
 //      .withColumnRenamed("MealIndex", "MealID")
@@ -90,9 +73,8 @@ object DataFilters {
 
 
     // 保存分区数据为JSON文件
-    firstPartitionData.write.json("Data/traindata.json")
-    secondPartitionData.write.json("Data/testdata.json")
-    thirdPartitionData.write.json("Data/verifydata.json")
-
+    firstPartitionData.write.mode("overwrite").json("Data/traindata.json")
+    secondPartitionData.write.mode("overwrite").json("Data/testdata.json")
+    thirdPartitionData.write.mode("overwrite").json("Data/verifydata.json")
   }
 }
