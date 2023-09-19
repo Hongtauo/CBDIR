@@ -10,6 +10,7 @@ import org.apache.spark.ml.feature.VectorAssembler
       .config("some.spark.config.options", "some.config")
       .appName("test")
       .master("local[*]")
+      .config("spark.sql.debug.maxToStringFields",5200)
       .enableHiveSupport()
       .getOrCreate()
 
@@ -62,28 +63,28 @@ import org.apache.spark.ml.feature.VectorAssembler
       .setOutputCol("features")
 
     //output为向量化后的表
-    val output = assembler.transform(df_matrix)
+    val output = assembler.transform(df_matrix).repartition(1)
     //println("表长为：" + output.count())
     //output.show()
 
     // 三、使用LDA模型 5130个主题,每个用户表示一个主题
     println("参数寻优：")
-    for (i<-Array(5,10,15,20,40,60,100)){
-      println("i="+i)
+//    for (i<-Array(5,10,15,20,40,60,100)){
+//      println("i="+i)
       val lda = new LDA()
         .setK(5130)
         .setOptimizer("online")
-        .setMaxIter(i) //第一个参数表示主题数，第二个参数是迭代次数
-
+        .setMaxIter(5) //第一个参数表示主题数，第二个参数是迭代次数
+      println(lda.getMaxIter)
       val model = lda.fit(output)
       val ll = model.logLikelihood(output)
       val lp = model.logPerplexity(output)
 
-      println(s"$i $ll")
-      println(s"$i $lp")
+//      println(s"$i $ll")
+//      println(s"$i $lp")
     }
 //    val topics = model.describeTopics(5)
 //    println("The topics described by their top-weighted terms:")
     //topics.show(false)
-  }
+//  }
 }
