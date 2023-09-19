@@ -1,4 +1,4 @@
-package DataProcessing
+package LDA_Processing
 
 import org.apache.spark.ml.clustering.LDA
 import org.apache.spark.ml.feature.VectorAssembler

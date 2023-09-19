@@ -1,4 +1,4 @@
-package DataProcessing
+package LDA_Processing
 
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions.explode
@@ -36,5 +36,6 @@ object MealIDtoName {
 
     // 用户-菜品 推荐表
     UserIDANDMealList.show()
+    UserIDANDMealList.write.mode("overwrite").saveAsTable("LDARecommendList")
   }
 }
